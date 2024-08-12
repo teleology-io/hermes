@@ -29,18 +29,14 @@ type Headers = map[string]string
 
 type Params = map[string]string
 
-type ClientConfiguration struct {
-	BaseURL string
-	Headers Headers
-	Params  Params
-	Timeout int
-}
+type TransformResponse func(*Response, error) (*Response, error)
 
 type Client struct {
-	baseURL *url.URL
-	headers Headers
-	params  Params
-	client  http.Client
+	baseURL   *url.URL
+	headers   Headers
+	params    Params
+	transform *TransformResponse
+	client    http.Client
 }
 
 type Request struct {
@@ -54,6 +50,14 @@ type Request struct {
 type Response struct {
 	*http.Response
 	Data []byte
+}
+
+type ClientConfiguration struct {
+	BaseURL           string
+	Headers           Headers
+	Params            Params
+	Timeout           int
+	TransformResponse *TransformResponse
 }
 
 func Create(config ClientConfiguration) Client {
@@ -79,9 +83,10 @@ func Create(config ClientConfiguration) Client {
 	}
 
 	return Client{
-		baseURL: baseURL,
-		headers: headers,
-		params:  params,
+		baseURL:   baseURL,
+		headers:   headers,
+		params:    params,
+		transform: config.TransformResponse,
 		client: http.Client{
 			Timeout: time.Duration(timeout) * time.Second,
 		},
@@ -193,6 +198,13 @@ func (c Client) Send(request Request) (*Response, error) {
 	dataRes, err := io.ReadAll(httpRes.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if c.transform != nil {
+		return (*c.transform)(&Response{
+			httpRes,
+			dataRes,
+		}, nil)
 	}
 
 	return &Response{
