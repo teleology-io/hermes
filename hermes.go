@@ -35,7 +35,7 @@ type Client struct {
 	baseURL   *url.URL
 	headers   Headers
 	params    Params
-	transform *TransformResponse
+	transform TransformResponse
 	client    http.Client
 }
 
@@ -57,7 +57,7 @@ type ClientConfiguration struct {
 	Headers           Headers
 	Params            Params
 	Timeout           int
-	TransformResponse *TransformResponse
+	TransformResponse TransformResponse
 }
 
 func Create(config ClientConfiguration) Client {
@@ -201,7 +201,7 @@ func (c Client) Send(request Request) (*Response, error) {
 	}
 
 	if c.transform != nil {
-		return (*c.transform)(&Response{
+		return (c.transform)(&Response{
 			httpRes,
 			dataRes,
 		}, nil)
