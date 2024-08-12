@@ -212,3 +212,23 @@ func (c Client) Send(request Request) (*Response, error) {
 		dataRes,
 	}, nil
 }
+
+func Post(request Request) (*Response, error) {
+	request.Method = POST
+	return Create(ClientConfiguration{}).Send(request)
+}
+
+func Put(request Request) (*Response, error) {
+	request.Method = PUT
+	return Create(ClientConfiguration{}).Send(request)
+}
+
+func Get(request Request) (*Response, error) {
+	request.Method = GET
+	return Create(ClientConfiguration{}).Send(request)
+}
+
+func Delete(request Request) (*Response, error) {
+	request.Method = DELETE
+	return Create(ClientConfiguration{}).Send(request)
+}

@@ -26,12 +26,20 @@ func main() {
 		Headers: hermes.Headers{},
 		Params: hermes.Params{},
 		Timeout: 5, // seconds
+		TransformResponse: func(res *hermes.Response, err error) (*hermes.Response, error) {
+				// can be used as an instance error handler
+				if res.StatusCode != http.StatusOK {
+					fmt.Println("ERROR:", string(res.Data))
+					return nil, errors.New("request failed")
+				}
+
+				return res, err
+		},
 	})
 }
 ```
 
-Making requests:
-
+Making client requests:
 
 ```go
 res, err := client.Send(hermes.Request{
@@ -47,4 +55,14 @@ if err != nil {
 
 // res wraps http.Response but automatically reads Body 
 // and stores it on res.Data
+```
+
+One-off method-based requests:
+
+```go
+res, err := hermes.Get(hermes.Request{
+		Url: "https://fakestoreapi.com/products",
+	})
+
+fmt.Println(res.StatusCode, string(res.Data), err)
 ```
